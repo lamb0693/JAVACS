@@ -1,30 +1,46 @@
 package com.example;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.URISyntaxException;
 
 public class WndFrame extends JFrame {
+
+    public Socket socket = null;
 
     AudioNetStreamer audioStreamer = null;
     CSRCanvas canvas = null;
     
     public WndFrame() {
+        initSocket();
+
         setSize(Cons.WINDOW_WIDTH,Cons.WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("CSR");
-        init();
-        setVisible(true);
-        
+        initWindow();
+        setVisible(true); 
     }
 
-    private void init(){
+    private void initSocket(){
+        try {
+            IO.Options options = new IO.Options();
+            options.forceNew = true; // Create a new connection
+            socket = IO.socket(Cons.SOCEKTIO_SERVER, options);
+            socket.connect();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void initWindow(){
         this.setLayout(new BorderLayout());
 
         /*
@@ -99,7 +115,7 @@ public class WndFrame extends JFrame {
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
-                    audioStreamer = new AudioNetStreamer();
+                    audioStreamer = new AudioNetStreamer(socket);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
                     thisButton.setText("음성 전달 끄기");
@@ -153,21 +169,15 @@ public class WndFrame extends JFrame {
 
 
         //this.pack();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if(socket == null) socket.close();
 
-        /*
-         * stop streaming button  -- of no use currently
-         */
-        // JButton btnStopStreaming = new JButton("Stop Streaming", null);
-        // btnStopStreaming.setSize(1000, 100);
-        // this.add(btnStopStreaming, BorderLayout.SOUTH);
-        // btnStopStreaming.addActionListener(new ActionListener() {
-        //     @Override
-        //     public void actionPerformed(ActionEvent e) {
-        //         // TODO Auto-generated method stub
-        //         // audioStreamer.stopStreaming();
-        //     }
-        // });
-
+                System.exit(0);
+            }
+        });
+ 
     }
 
 }
