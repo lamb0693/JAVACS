@@ -3,19 +3,29 @@ package com.example;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+
+import io.socket.client.Socket;
+
 import java.awt.*;
 
 public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListener{
 
     ArrayList<Point> pointList = new ArrayList<>();
     ArrayList<ArrayList<Point>> lineList = new ArrayList<>();
+    private Socket socket;
 
     public CSRCanvas() {
+        init();
+    }
+
+    public CSRCanvas(Socket socket){
+        this.socket = socket;
         init();
     }
 
@@ -45,6 +55,8 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                 System.out.println(e.getMessage());
             }
         }
+
+        init();
         
     }
 
@@ -80,11 +92,13 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
 
     public void removeLast() {
         if(lineList.size() > 0) lineList.remove(lineList.size()-1);
+        sendDataToCSR();
         repaint();
     }
 
     public void clearAll() {
         lineList.clear();
+        sendDataToCSR();
         repaint();
     }
 
@@ -99,10 +113,24 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
             objectOutputStream.close();
             fileOutputStream.close();
 
+            clearAll();
+
             System.out.println("ArrayList saved to boardImage.csr");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void sendDataToCSR(){
+        try{
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(lineList);
+            socket.emit( "canvas_data", baos.toByteArray());
+        } catch (Exception e){
+            System.out.println("send error in CSRCanvas");
+        }
+        
     }
 
     @Override
@@ -139,6 +167,7 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
         lineList.add(pointList);
         pointList = new ArrayList<>();
         repaint();
+        sendDataToCSR();
     }
 
     @Override

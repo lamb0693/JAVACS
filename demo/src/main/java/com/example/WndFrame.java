@@ -24,7 +24,7 @@ public class WndFrame extends JFrame {
 
         setSize(Cons.WINDOW_WIDTH,Cons.WINDOW_HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("CSR");
+        setTitle("Client");
         initWindow();
         setVisible(true); 
     }
@@ -46,7 +46,7 @@ public class WndFrame extends JFrame {
         /*
          *그림 그리기용 Canvas
          */ 
-        canvas = new CSRCanvas();
+        canvas = new CSRCanvas(socket);
         this.add(canvas, BorderLayout.WEST);
 
         /*
