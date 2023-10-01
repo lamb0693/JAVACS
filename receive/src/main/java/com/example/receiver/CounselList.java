@@ -4,20 +4,46 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 public class CounselList  extends JList<Object> implements MouseListener {
     private DefaultListModel<Object> model = null;
+    Socket socket;
 
-    public CounselList(){
-        this.setSize(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT-Cons.UPPER_PANEL_HEIGHT);
+    public CounselList(Socket socket){
+        this.socket = socket;
+
+        try {
+            socket.on("chat_data", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    byte[] receivedData = (byte[]) args[0];
+//                    ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
+                    try{
+                        //ObjectInputStream ois = new ObjectInputStream(bais);
+                        String strReceived = new String(receivedData.toString());
+                        addString("client", strReceived);
+                    } catch (Exception e){
+                        System.out.println("Casting error in CSRCanvas");
+                    }
+                    repaint();;
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         this.setBackground(Color.LIGHT_GRAY);
 
         model = new DefaultListModel<Object>();
@@ -28,6 +54,10 @@ public class CounselList  extends JList<Object> implements MouseListener {
 
         model.addElement("Hello");
         model.addElement("한글 사랑");
+    }
+
+    public void addString(String owner, String message){
+        model.addElement(owner + " : " +  message);
     }
 
     // Custom cell renderer class
@@ -63,11 +93,12 @@ public class CounselList  extends JList<Object> implements MouseListener {
 
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
-        //System.out.println(e.getClickCount());
-        int index = locationToIndex(e.getPoint());
-        System.out.println("row in JList : " + index);
-        CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\javaclass\\abuji\\CSNet\\demo\\boardImage.csr");
-        customModalDialog.showDialog();
+        if(e.getClickCount()==2){
+            int index = locationToIndex(e.getPoint());
+            System.out.println("row in JList : " + index);
+            CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\javaclass\\abuji\\CSNet\\demo\\boardImage.csr");
+            customModalDialog.showDialog();
+        };
     }
 
     @Override

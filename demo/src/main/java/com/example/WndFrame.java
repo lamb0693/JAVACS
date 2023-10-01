@@ -115,6 +115,7 @@ public class WndFrame extends JFrame {
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.RED);
                     audioStreamer = new AudioNetStreamer(socket);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
@@ -122,6 +123,7 @@ public class WndFrame extends JFrame {
                     thisButton.setEnabled(true);
                 }else if(audioStreamer!=null && audioStreamer.getBStreaming()==true){
                     thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.LIGHT_GRAY);
                     audioStreamer.stopStreaming();
                     thisButton.setText("음성 전달 켜기");
                     thisButton.setEnabled(true);

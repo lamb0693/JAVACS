@@ -13,7 +13,6 @@ import java.util.ArrayList;
 
 import java.awt.*;
 
-import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
@@ -84,7 +83,6 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
 
     public void init(){
         setBackground(Color.BLUE);
-        setSize(Cons.CANVAS_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);    
     }

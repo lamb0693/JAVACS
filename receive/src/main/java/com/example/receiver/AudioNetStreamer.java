@@ -1,16 +1,12 @@
 package com.example.receiver;
 
-import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-
 import javax.sound.sampled.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 public class AudioNetStreamer implements Runnable{
     private static final int SAMPLE_RATE = 22000; // 44100;
@@ -45,7 +41,7 @@ public class AudioNetStreamer implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("audio_net thread started...");
+        System.out.println("audio streaming thread started...");
 
         try{
             final AudioFormat audioFormat = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);

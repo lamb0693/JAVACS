@@ -22,11 +22,16 @@ public class WndFrame extends JFrame {
     public WndFrame() {
         initSocket();
 
-        setSize(Cons.WINDOW_WIDTH,Cons.WINDOW_HEIGHT);
+        setPreferredSize(new Dimension(Cons.WINDOW_WIDTH, Cons.WINDOW_HEIGHT));
+        setMinimumSize(new Dimension(Cons.WINDOW_WIDTH, Cons.WINDOW_HEIGHT));
+        setMaximumSize(new Dimension(Cons.WINDOW_WIDTH, Cons.WINDOW_HEIGHT));
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("CSR");
         initWindow();
         setVisible(true); 
+
+        //this.pack();
     }
 
     private void initSocket(){
@@ -47,21 +52,28 @@ public class WndFrame extends JFrame {
          *그림 그리기용 Canvas
          */ 
         canvas = new CSRCanvas(socket);
+        canvas.setPreferredSize(new Dimension(Cons.CANVAS_WIDTH, Cons.WINDOW_HEIGHT-Cons.UPPER_PANEL_HEIGHT));
+        canvas.setMinimumSize(new Dimension(Cons.CANVAS_WIDTH, Cons.WINDOW_HEIGHT-Cons.UPPER_PANEL_HEIGHT));
+        canvas.setMaximumSize(new Dimension(Cons.CANVAS_WIDTH, Cons.WINDOW_HEIGHT-Cons.UPPER_PANEL_HEIGHT));
         this.add(canvas, BorderLayout.WEST);
 
         /*
          * 상담 결과 보여주는 List
          */
-        CounselList counselList = new CounselList();
+        CounselList counselList = new CounselList(socket);
+        counselList.setPreferredSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
+        counselList.setMinimumSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
+        counselList.setMaximumSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
         this.add(counselList, BorderLayout.CENTER);
 
         /*
-         * DB조회용 panel
+         * DB조회용 panel, EastPanel
          */
         JPanel panelEast = new JPanel();
-        panelEast.setLayout(new GridLayout(6,1));   
-        panelEast.setSize(Cons.RIGHT_PANEL_WIDTH, Cons.WINDOW_HEIGHT-Cons.UPPER_PANEL_HEIGHT);
-        this.add(panelEast, BorderLayout.EAST);
+        panelEast.setLayout(new BorderLayout());
+        panelEast.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
+        panelEast.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
+        panelEast.setMaximumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));   
 
         /*
          * login 3개
@@ -69,30 +81,70 @@ public class WndFrame extends JFrame {
         // 전화번호
         
         JPanel loginPanel = new JPanel();
-        loginPanel.setLayout(new GridLayout(3,1));
+        loginPanel.setLayout(new BorderLayout());
         loginPanel.setBackground(Color.YELLOW);
-        loginPanel.setSize(Cons.RIGHT_PANEL_WIDTH, 200);
+        loginPanel.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.LOGIN_PANEL_HEIGHT));
+        loginPanel.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.LOGIN_PANEL_HEIGHT));
+        loginPanel.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.LOGIN_PANEL_HEIGHT));
         JPanel namePanel = new JPanel();
         JLabel labelName = new JLabel("전화번호");
-        labelName.setSize(200,100);
+        //labelName.setSize(200,70);
         namePanel.add(labelName);
         JTextField txtName = new JTextField(20);
         namePanel.add(txtName);
         // password
         JPanel pwdPanel = new JPanel();
         JLabel labelPwd = new JLabel("비밀번호");
-        labelPwd.setSize(200,100);
+        //labelPwd.setSize(200,70);
         pwdPanel.add(labelPwd);
         JTextField txtPwd = new JTextField(20);
         pwdPanel.add(txtPwd);
         JButton btnLogin = new JButton("Log in");
         
-        loginPanel.add(namePanel);
-        loginPanel.add(pwdPanel);
-        loginPanel.add(btnLogin);
+        loginPanel.add(namePanel, BorderLayout.NORTH);
+        loginPanel.add(pwdPanel, BorderLayout.CENTER);
+        loginPanel.add(btnLogin, BorderLayout.SOUTH);
 
-        panelEast.add(loginPanel);
+        panelEast.add(loginPanel, BorderLayout.NORTH);
 
+        /*
+        * Send Message Panel
+        */ 
+        JPanel chatPanel = new JPanel();
+        chatPanel.setLayout(new BorderLayout());
+        chatPanel.setBackground(Color.BLUE);
+        chatPanel.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CHAT_PANEL_HEIGHT));
+        chatPanel.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CHAT_PANEL_HEIGHT));
+        chatPanel.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CHAT_PANEL_HEIGHT));
+        
+        JPanel labelPanel = new JPanel();
+        JLabel labelSend = new JLabel("보낼메시지");
+        labelPanel.add(labelSend);
+        final JTextField txtSend = new JTextField(30);
+        JButton btnSendMessage = new JButton("보내기");
+        btnSendMessage.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(txtSend.getText() != null && !txtSend.getText().equals("")) socket.emit("chat_data", txtSend.getText().getBytes());
+            }
+        });
+        
+        chatPanel.add(labelPanel, BorderLayout.NORTH);
+        chatPanel.add(txtSend, BorderLayout.CENTER);
+        chatPanel.add(btnSendMessage, BorderLayout.SOUTH);
+
+        panelEast.add(chatPanel, BorderLayout.CENTER);
+
+        /*
+         * 접속자 List
+         */
+        CustomorList customorList = new CustomorList();
+        customorList.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
+        customorList.setMaximumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
+        customorList.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
+        panelEast.add(customorList, BorderLayout.SOUTH);
+
+        this.add(panelEast, BorderLayout.EAST);
 
         /*
         * upper Panel 설정
@@ -101,6 +153,8 @@ public class WndFrame extends JFrame {
         panelNorth.setLayout(new FlowLayout(FlowLayout.LEFT));
         panelNorth.setSize(Cons.WINDOW_WIDTH,Cons.UPPER_PANEL_HEIGHT);
         this.add(panelNorth, BorderLayout.NORTH);
+
+        //this.pack();
 
         //******  upper Panel의 button들
 
@@ -115,6 +169,7 @@ public class WndFrame extends JFrame {
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.RED);
                     audioStreamer = new AudioNetStreamer(socket);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
@@ -122,6 +177,7 @@ public class WndFrame extends JFrame {
                     thisButton.setEnabled(true);
                 }else if(audioStreamer!=null && audioStreamer.getBStreaming()==true){
                     thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.LIGHT_GRAY);
                     audioStreamer.stopStreaming();
                     thisButton.setText("음성 전달 켜기");
                     thisButton.setEnabled(true);
@@ -167,6 +223,31 @@ public class WndFrame extends JFrame {
             }
         });
 
+        JButton btnSpeakerOn = new JButton("음성받기 켜기", null);
+        panelNorth.add(btnSpeakerOn);
+        btnSpeakerOn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JButton thisButton = (JButton)e.getSource();
+                if(audioNetReceiver == null){
+                    thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.RED);
+                    audioNetReceiver = new AudioNetReceiver(socket);
+                    Thread audioThread = new Thread(audioNetReceiver);
+                    audioThread.start();
+                    thisButton.setText("음성받기 끄기");
+                    thisButton.setEnabled(true);
+                }else if(audioNetReceiver!=null && audioNetReceiver.getBReceiving()==true){
+                    thisButton.setEnabled(false);
+                    thisButton.setBackground(Color.LIGHT_GRAY);
+                    audioNetReceiver.stopReceiving();;
+                    thisButton.setText("음성받기 켜기");
+                    thisButton.setEnabled(true);
+                    audioNetReceiver = null;
+                } 
+            }
+        });
+
 
         //this.pack();
         addWindowListener(new WindowAdapter() {
@@ -179,63 +260,5 @@ public class WndFrame extends JFrame {
         });
  
     }
-
-
-    //     this.setLayout(new BorderLayout());
-
-    //     JButton btnStartStreaming = new JButton("Start Receiving", null);
-    //     btnStartStreaming.setSize(1000, 100);
-    //     this.add(btnStartStreaming, BorderLayout.SOUTH);
-    //     btnStartStreaming.addActionListener(new ActionListener() {
-    //         @Override
-    //         public void actionPerformed(ActionEvent e) {
-    //             // TODO Auto-generated method stub
-    //             System.out.println("clicked");
-    //             audioNetReceiver = new AudioNetReceiver();
-    //             Thread audioThread = new Thread(audioNetReceiver);
-    //             audioThread.start();
-    //         }
-    //     });
-
-    //     JButton btnStopStreaming = new JButton("Stop Receiving", null);
-    //     btnStopStreaming.setSize(1000, 100);
-    //     this.add(btnStopStreaming, BorderLayout.NORTH);
-    //     btnStopStreaming.addActionListener(new ActionListener() {
-    //         @Override
-    //         public void actionPerformed(ActionEvent e) {
-    //             // TODO Auto-generated method stub
-    //             //audioNetReceiver.stopReceiving();
-    //         }
-    //     });
-
-    //     final CSRCanvas canvas = new CSRCanvas();
-    //     this.add(canvas, BorderLayout.CENTER);
-
-    //     JButton btnDellast = new JButton("del last", null);
-    //     btnDellast.setSize(100,600);
-    //     this.add(btnDellast, BorderLayout.EAST);
-    //     btnDellast.addActionListener(new ActionListener() {
-    //         @Override
-    //         public void actionPerformed(ActionEvent e) {
-    //             // TODO Auto-generated method stub
-    //             canvas.removeLast();
-    //             //throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
-    //         }
-    //     });
-
-    //     JButton btnClearAll = new JButton("clear all", null);
-    //     btnClearAll.setSize(100,600);
-    //     this.add(btnClearAll, BorderLayout.WEST);
-
-    //     btnClearAll.addActionListener(new ActionListener() {
-    //         @Override
-    //         public void actionPerformed(ActionEvent e) {
-    //             // TODO Auto-generated method stub
-    //             canvas.clearAll();;
-    //             //throw new UnsupportedOperationException("Unimplemented method 'actionPerformed'");
-    //         }
-    //     });
-   
-    // }
 
 }
