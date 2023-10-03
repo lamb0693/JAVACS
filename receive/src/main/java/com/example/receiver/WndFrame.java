@@ -4,6 +4,12 @@ import javax.swing.*;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,6 +17,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WndFrame extends JFrame {
     public Socket socket = null;
@@ -100,6 +108,39 @@ public class WndFrame extends JFrame {
         JTextField txtPwd = new JTextField(20);
         pwdPanel.add(txtPwd);
         JButton btnLogin = new JButton("Log in");
+
+        btnLogin.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Builder builder = new Retrofit.Builder();
+                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
+                INetworkService iNetworkService = retrofit.create(INetworkService.class);
+                Map<String, String> loginParamMap = new HashMap<>();
+                loginParamMap.put("tel", "01031795981");
+                loginParamMap.put("password", "00000000");
+                Call<ResponseToken> apicall = iNetworkService.login(loginParamMap);
+                apicall.enqueue(new Callback<ResponseToken>(){
+                    @Override
+                    public void onFailure(Call<ResponseToken> arg0, Throwable arg1) {
+                        System.out.println("api call failure");
+                    }
+                    @Override
+                    public void onResponse(Call<ResponseToken> arg0, Response<ResponseToken> arg1) {
+                        System.out.println("api call success");
+                        if( arg1.isSuccessful() ) {
+                            ResponseToken responseToken = arg1.body();
+                            System.out.println(responseToken.accessToken);
+                            System.out.println(responseToken.refreshToken);
+                        } else {
+                            int response  = arg1.code();
+                            System.out.println("resoponse not ok :" + response);
+                        }
+                        
+                    }
+                });
+
+            }
+        });
         
         loginPanel.add(namePanel, BorderLayout.NORTH);
         loginPanel.add(pwdPanel, BorderLayout.CENTER);
@@ -247,7 +288,6 @@ public class WndFrame extends JFrame {
                 } 
             }
         });
-
 
         //this.pack();
         addWindowListener(new WindowAdapter() {
