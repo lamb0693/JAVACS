@@ -31,7 +31,7 @@ public class CounselList  extends JList<Object> implements MouseListener {
 //                    ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
                     try{
                         //ObjectInputStream ois = new ObjectInputStream(bais);
-                        String strReceived = new String(receivedData.toString());
+                        String strReceived = new String(receivedData, "EUC_KR");
                         addString("client", strReceived);
                     } catch (Exception e){
                         System.out.println("Casting error in CSRCanvas");
