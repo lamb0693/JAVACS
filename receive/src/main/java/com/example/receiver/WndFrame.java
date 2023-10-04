@@ -2,6 +2,9 @@ package com.example.receiver;
 
 import javax.swing.*;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import retrofit2.Call;
@@ -26,6 +29,9 @@ public class WndFrame extends JFrame {
 
     AudioNetStreamer audioStreamer = null;
     AudioNetReceiver audioNetReceiver = null;
+
+    private String accessToken = null;
+    private String refreshToken = null;
 
     public WndFrame() {
         initSocket();
@@ -88,7 +94,7 @@ public class WndFrame extends JFrame {
          */
         // 전화번호
         
-        JPanel loginPanel = new JPanel();
+        final JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BorderLayout());
         loginPanel.setBackground(Color.YELLOW);
         loginPanel.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.LOGIN_PANEL_HEIGHT));
@@ -98,53 +104,75 @@ public class WndFrame extends JFrame {
         JLabel labelName = new JLabel("전화번호");
         //labelName.setSize(200,70);
         namePanel.add(labelName);
-        JTextField txtName = new JTextField(20);
+        final JTextField txtName = new JTextField(20);
         namePanel.add(txtName);
         // password
         JPanel pwdPanel = new JPanel();
         JLabel labelPwd = new JLabel("비밀번호");
         //labelPwd.setSize(200,70);
         pwdPanel.add(labelPwd);
-        JTextField txtPwd = new JTextField(20);
+        final JPasswordField txtPwd = new JPasswordField(20);
         pwdPanel.add(txtPwd);
-        JButton btnLogin = new JButton("Log in");
+        final JButton btnLogin = new JButton("Log in");
+        final JButton btnLogout = new JButton("Log out");
 
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                btnLogin.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
                 Builder builder = new Retrofit.Builder();
                 Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
                 INetworkService iNetworkService = retrofit.create(INetworkService.class);
                 Map<String, String> loginParamMap = new HashMap<>();
-                loginParamMap.put("tel", "01031795981");
-                loginParamMap.put("password", "00000000");
+                loginParamMap.put("tel", txtName.getText());
+                loginParamMap.put("password", txtPwd.getText());
                 Call<ResponseToken> apicall = iNetworkService.login(loginParamMap);
                 apicall.enqueue(new Callback<ResponseToken>(){
                     @Override
                     public void onFailure(Call<ResponseToken> arg0, Throwable arg1) {
                         System.out.println("api call failure");
+                        btnLogin.setEnabled(true);
                     }
                     @Override
                     public void onResponse(Call<ResponseToken> arg0, Response<ResponseToken> arg1) {
                         System.out.println("api call success");
                         if( arg1.isSuccessful() ) {
                             ResponseToken responseToken = arg1.body();
-                            System.out.println(responseToken.accessToken);
-                            System.out.println(responseToken.refreshToken);
+                            accessToken = responseToken.accessToken;
+                            refreshToken = responseToken.refreshToken;
+                            JOptionPane.showMessageDialog(loginPanel, "Login success : " + accessToken);
+                            txtName.setText("");
+                            txtPwd.setText("");
+                            btnLogout.setEnabled(true);
                         } else {
                             int response  = arg1.code();
-                            System.out.println("resoponse not ok :" + response);
+                            JOptionPane.showMessageDialog(loginPanel, "resoponse not ok :" + response);
+                            btnLogin.setEnabled(true);
                         }
-                        
                     }
                 });
 
             }
         });
+
+        btnLogout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnLogout.setEnabled(false);
+                accessToken = null;
+                refreshToken = null;
+                btnLogin.setEnabled(true);
+            }
+        });
+
+        JPanel loginOutPanel = new JPanel();
+        loginOutPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        loginOutPanel.add(btnLogin);
+        loginOutPanel.add(btnLogout);
         
         loginPanel.add(namePanel, BorderLayout.NORTH);
         loginPanel.add(pwdPanel, BorderLayout.CENTER);
-        loginPanel.add(btnLogin, BorderLayout.SOUTH);
+        loginPanel.add(loginOutPanel, BorderLayout.SOUTH);
 
         panelEast.add(loginPanel, BorderLayout.NORTH);
 
@@ -286,6 +314,33 @@ public class WndFrame extends JFrame {
                     thisButton.setEnabled(true);
                     audioNetReceiver = null;
                 } 
+            }
+        });
+
+        final JButton btnUpload = new JButton("upload");
+        panelNorth.add(btnUpload);
+        btnUpload.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnUpload.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                Gson gson = gsonBuilder.setLenient().create();
+                Builder builder = new Retrofit.Builder();
+                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+                INetworkService iNetworkService = retrofit.create(INetworkService.class);
+ 
+                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken, "TEXT", "Hello Java", null);
+                apicall.enqueue(new Callback<String>(){
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        JOptionPane.showMessageDialog(loginPanel, "uploadSuccess : " + response.body());
+                    }
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+                    }
+                });
+                btnUpload.setEnabled(true);
             }
         });
 
