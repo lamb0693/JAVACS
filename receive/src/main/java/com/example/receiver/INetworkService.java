@@ -2,13 +2,13 @@ package com.example.receiver;
 
 import java.util.Map;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 
 public interface INetworkService {
 
@@ -17,14 +17,14 @@ public interface INetworkService {
         @Body Map<String, String> param
     ); 
 
-    @FormUrlEncoded
+    @Multipart
     @POST("/api/board/create")
     public Call<String> createBoard(
         @Header("Authorization") String authToken,
-        // @Body Map<String, Object> param
-        @Field("content") String content,
-        @Field("message") String message,
-        @Field("file") Multipart file
+        //@Header("Content-type") String contentType,
+        @Part("content") String content,
+        @Part("message") String message,
+        @Part MultipartBody.Part file
     );
     
 }

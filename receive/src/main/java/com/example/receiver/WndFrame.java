@@ -7,8 +7,12 @@ import com.google.gson.GsonBuilder;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.HttpException;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.Retrofit.Builder;
@@ -19,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -329,7 +334,11 @@ public class WndFrame extends JFrame {
                 Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
                 INetworkService iNetworkService = retrofit.create(INetworkService.class);
  
-                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken, "TEXT", "Hello Java", null);
+                File upFile = new File("C:\\ldw\\test.html");
+                RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
+
+                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/ "TEXT", "Hello Java", filePart);
                 apicall.enqueue(new Callback<String>(){
                     @Override
                     public void onResponse(Call<String> call, Response<String> response) {
@@ -337,7 +346,16 @@ public class WndFrame extends JFrame {
                     }
                     @Override
                     public void onFailure(Call<String> call, Throwable t) {
-                        JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+                        //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+                        if (t instanceof HttpException) {
+                            HttpException httpException = (HttpException) t;
+                            int responseCode = httpException.code();
+                            // Now you have the response code
+                            JOptionPane.showMessageDialog(loginPanel, "uploadFail : Response code " + responseCode);
+                        } else {
+                            // Handle other types of failures (e.g., network issues)
+                            JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+                        }
                     }
                 });
                 btnUpload.setEnabled(true);
