@@ -1,7 +1,19 @@
 package com.example.receiver;
 
 import io.socket.client.Socket;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.HttpException;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
+
 import javax.sound.sampled.*;
+import javax.swing.JOptionPane;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,13 +26,16 @@ public class AudioNetStreamer implements Runnable{
     private boolean bStreaming = true;
     TargetDataLine targetDataLine = null;
     private Socket socket;
+    private String accessToken = null;
 
     private AudioInputStream audioInputStream = null;
     private File audioFile = null;
+    private final String savedAudioFileName = "savedAudio.wav";
 
-    public AudioNetStreamer(Socket socket){
+    public AudioNetStreamer(Socket socket, String accessToken){
         this.socket = socket;
-        this.audioFile = new File("savedAudio.wav");
+        this.accessToken = accessToken;
+        this.audioFile = new File(savedAudioFileName);
     }
 
     public void stopStreaming(){
@@ -37,6 +52,51 @@ public class AudioNetStreamer implements Runnable{
         } catch (IOException e) {
             System.err.println("Error saving audio to file: " + e.getMessage());
         }
+    }
+
+    private void uploadSavedAudioFile(){
+        Builder builder = new Retrofit.Builder();
+        //***** */ JSON 용
+        // GsonBuilder gsonBuilder = new GsonBuilder();
+        // Gson gson = gsonBuilder.setLenient().create();
+        //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+        /* plain-text용 gradle 추가 필요함 */
+        Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
+        
+        INetworkService iNetworkService = retrofit.create(INetworkService.class);
+
+        try{
+            File upFile = new File(savedAudioFileName);
+
+            RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
+            MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
+
+            Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/
+                         "AUDIO", "audio file", filePart);
+            apicall.enqueue(new Callback<String>(){
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    System.out.println("uploadSuccess : " + response.body());
+                    // 나중에 dialogue 띄우자
+                }
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+                    if (t instanceof HttpException) {
+                        HttpException httpException = (HttpException) t;
+                        int responseCode = httpException.code();
+                        // Now you have the response code
+                        System.out.println("uploadFail : Response code " + responseCode);
+                    } else {
+                        // Handle other types of failures (e.g., network issues)
+                        System.out.println("uploadFail : " + t.getMessage());
+                    }
+                }
+            });
+        } catch(Exception e){
+            System.err.println("savedAudioFile 의 upload 에 실패 했습니다");
+        }
+  
     }
 
     @Override
@@ -82,6 +142,10 @@ public class AudioNetStreamer implements Runnable{
             audioInputStream = new AudioInputStream(byteArrayInputStream, audioFormat, audioData.length / audioFormat.getFrameSize());
 
             saveAudioToFile(audioFile);
+            uploadSavedAudioFile();
+            /*
+            * socket으로 상담 게시판 update되었다고  message 보내야 함
+            */ 
 
         } catch(Exception e){
             System.err.println(e.getMessage());

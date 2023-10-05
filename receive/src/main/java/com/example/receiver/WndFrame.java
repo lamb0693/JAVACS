@@ -17,6 +17,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.Retrofit.Builder;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -240,11 +241,13 @@ public class WndFrame extends JFrame {
         btnStartStreaming.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if(accessToken==null) return;  // login 되어 있지 않으면 return
+                // 나중 login되어 있지 않다고 message
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
                     thisButton.setBackground(Color.RED);
-                    audioStreamer = new AudioNetStreamer(socket);
+                    audioStreamer = new AudioNetStreamer(socket, accessToken);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
                     thisButton.setText("음성 전달 끄기");
@@ -328,10 +331,14 @@ public class WndFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 btnUpload.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
-                GsonBuilder gsonBuilder = new GsonBuilder();
-                Gson gson = gsonBuilder.setLenient().create();
                 Builder builder = new Retrofit.Builder();
-                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+                //***** */ JSON 용
+                // GsonBuilder gsonBuilder = new GsonBuilder();
+                // Gson gson = gsonBuilder.setLenient().create();
+                //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+                /* plain-text용 gradle 추가 필요함 */
+                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
+                
                 INetworkService iNetworkService = retrofit.create(INetworkService.class);
  
                 File upFile = new File("C:\\ldw\\test.html");
