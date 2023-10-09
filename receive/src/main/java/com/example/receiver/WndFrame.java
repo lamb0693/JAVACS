@@ -32,15 +32,26 @@ import java.util.Map;
 public class WndFrame extends JFrame {
     public Socket socket = null;
     CSRCanvas canvas = null;
+    CounselList counselList = null;
 
     AudioNetStreamer audioStreamer = null;
     AudioNetReceiver audioNetReceiver = null;
 
+    private Uploader uploader = null;
+
+    // login후 setting 되는 변수
     private String accessToken = null;
     private String refreshToken = null;
 
+    // customor select 후 설정 CustomrList에서 설정
+    //private String customerTel = null;
+    
+    JLabel txtCustomerTel = null;
+    JLabel txtLoginState = null;
+
     public WndFrame() {
         initSocket();
+        uploader = new Uploader(this);
 
         setPreferredSize(new Dimension(Cons.WINDOW_WIDTH, Cons.WINDOW_HEIGHT));
         setMinimumSize(new Dimension(Cons.WINDOW_WIDTH, Cons.WINDOW_HEIGHT));
@@ -57,6 +68,7 @@ public class WndFrame extends JFrame {
     private void initSocket(){
         try {
             IO.Options options = new IO.Options();
+            //options.path="/socket.io";
             options.forceNew = true; // Create a new connection
             socket = IO.socket(Cons.SOCEKTIO_SERVER, options);
             socket.connect();
@@ -80,7 +92,7 @@ public class WndFrame extends JFrame {
         /*
          * 상담 결과 보여주는 List
          */
-        CounselList counselList = new CounselList(socket);
+        counselList = new CounselList(socket, this);
         counselList.setPreferredSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
         counselList.setMinimumSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
         counselList.setMaximumSize(new Dimension(Cons.JLIST_WIDTH, Cons.WINDOW_HEIGHT - Cons.UPPER_PANEL_HEIGHT));
@@ -146,14 +158,20 @@ public class WndFrame extends JFrame {
                             ResponseToken responseToken = arg1.body();
                             accessToken = responseToken.accessToken;
                             refreshToken = responseToken.refreshToken;
+                            //*** */ uploader의 accessToken을 set
+                            uploader.setAccessToken(accessToken);
+                            //*** */
                             JOptionPane.showMessageDialog(loginPanel, "Login success : " + accessToken);
                             txtName.setText("");
                             txtPwd.setText("");
                             btnLogout.setEnabled(true);
+                            // 나중에 바꾸자
+                            txtLoginState.setText("CSR0001");
                         } else {
                             int response  = arg1.code();
                             JOptionPane.showMessageDialog(loginPanel, "resoponse not ok :" + response);
                             btnLogin.setEnabled(true);
+                            txtLoginState.setText("Logout state");
                         }
                     }
                 });
@@ -200,7 +218,12 @@ public class WndFrame extends JFrame {
         btnSendMessage.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(txtSend.getText() != null && !txtSend.getText().equals("")) socket.emit("chat_data", txtSend.getText().getBytes());
+                if(txtSend.getText() != null && !txtSend.getText().equals("")){
+                    uploader.uploadFile("TEXT", txtSend.getText(), null);
+                    txtSend.setText("");
+                    // message만 보내고 server로 upload 후 다시 상담 내역 download
+                    socket.emit("chat_data");
+                } 
             }
         });
         
@@ -213,7 +236,7 @@ public class WndFrame extends JFrame {
         /*
          * 접속자 List
          */
-        CustomorList customorList = new CustomorList();
+        CustomorList customorList = new CustomorList(this, socket);
         customorList.setPreferredSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
         customorList.setMaximumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
         customorList.setMinimumSize(new Dimension(Cons.RIGHT_PANEL_WIDTH, Cons.CUSTOMER_LIST_HEIGHT));
@@ -224,7 +247,7 @@ public class WndFrame extends JFrame {
         /*
         * upper Panel 설정
         */ 
-        JPanel panelNorth = new JPanel();
+        final JPanel panelNorth = new JPanel();
         panelNorth.setLayout(new FlowLayout(FlowLayout.LEFT));
         panelNorth.setSize(Cons.WINDOW_WIDTH,Cons.UPPER_PANEL_HEIGHT);
         this.add(panelNorth, BorderLayout.NORTH);
@@ -232,6 +255,14 @@ public class WndFrame extends JFrame {
         //this.pack();
 
         //******  upper Panel의 button들
+        JLabel lbLoginState = new JLabel("상담원:");
+        panelNorth.add(lbLoginState);
+        txtLoginState = new JLabel("로그인 하세요");
+        panelNorth.add(txtLoginState);
+        JLabel lbCustomerTel = new JLabel("고객 전화번호:");
+        panelNorth.add(lbCustomerTel);
+        txtCustomerTel = new JLabel("선택하세요");
+        panelNorth.add(txtCustomerTel);
 
         /** 
          * Button Start and stop streaming microphone
@@ -241,13 +272,15 @@ public class WndFrame extends JFrame {
         btnStartStreaming.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(accessToken==null) return;  // login 되어 있지 않으면 return
-                // 나중 login되어 있지 않다고 message
+                if(accessToken==null || getCustomorTel().equals("선택하세요")){
+                    JOptionPane.showMessageDialog(panelNorth, "login 하고 고객을 선택하세요");  
+                    return;  
+                }   
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
                     thisButton.setBackground(Color.RED);
-                    audioStreamer = new AudioNetStreamer(socket, accessToken);
+                    audioStreamer = new AudioNetStreamer(socket, uploader);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
                     thisButton.setText("음성 전달 끄기");
@@ -341,11 +374,11 @@ public class WndFrame extends JFrame {
                 
                 INetworkService iNetworkService = retrofit.create(INetworkService.class);
  
-                File upFile = new File("C:\\ldw\\test.html");
+                File upFile = new File("e:\\sql.txt");
                 RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
                 MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
 
-                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/ "TEXT", "Hello Java", filePart);
+                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/"01031795981", "TEXT", "Hello Java", filePart);
                 apicall.enqueue(new Callback<String>(){
                     @Override
                     public void onResponse(Call<String> call, Response<String> response) {
@@ -379,6 +412,30 @@ public class WndFrame extends JFrame {
             }
         });
  
+    }
+
+    public String getAccessToken(){
+        return this.accessToken;
+    }
+
+    public CounselList getCounselList(){
+        return this.counselList;
+    }
+
+    public Uploader getUploader(){
+        return this.uploader;
+    }
+
+    public String getCustomorTel(){
+        return this.txtCustomerTel.getText();
+    }
+
+    public void setCustomorTel(String tel){
+        txtCustomerTel.setText(tel);
+    }
+
+    public void setLoginState(String tel){
+        txtLoginState.setText(tel);
     }
 
 }

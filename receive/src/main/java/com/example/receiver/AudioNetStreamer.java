@@ -13,7 +13,6 @@ import retrofit2.Retrofit.Builder;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import javax.sound.sampled.*;
-import javax.swing.JOptionPane;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,11 +30,18 @@ public class AudioNetStreamer implements Runnable{
     private AudioInputStream audioInputStream = null;
     private File audioFile = null;
     private final String savedAudioFileName = "savedAudio.wav";
+    private Uploader uploader = null;
 
-    public AudioNetStreamer(Socket socket, String accessToken){
+    // public AudioNetStreamer(Socket socket, String accessToken){
+    //     this.socket = socket;
+    //     this.accessToken = accessToken;
+    //     this.audioFile = new File(savedAudioFileName);
+    // }
+
+    public AudioNetStreamer(Socket socket, Uploader uploader){
         this.socket = socket;
-        this.accessToken = accessToken;
         this.audioFile = new File(savedAudioFileName);
+        this.uploader = uploader;
     }
 
     public void stopStreaming(){
@@ -55,47 +61,49 @@ public class AudioNetStreamer implements Runnable{
     }
 
     private void uploadSavedAudioFile(){
-        Builder builder = new Retrofit.Builder();
+        uploader.uploadFile("AUDIO", "audio file", savedAudioFileName);
+
+        //Builder builder = new Retrofit.Builder();
         //***** */ JSON 용
         // GsonBuilder gsonBuilder = new GsonBuilder();
         // Gson gson = gsonBuilder.setLenient().create();
         //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
         /* plain-text용 gradle 추가 필요함 */
-        Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
+        // Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
         
-        INetworkService iNetworkService = retrofit.create(INetworkService.class);
+        // INetworkService iNetworkService = retrofit.create(INetworkService.class);
 
-        try{
-            File upFile = new File(savedAudioFileName);
+        // try{
+        //     File upFile = new File(savedAudioFileName);
 
-            RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
-            MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
+        //     RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
+        //     MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
 
-            Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/
-                         "AUDIO", "audio file", filePart);
-            apicall.enqueue(new Callback<String>(){
-                @Override
-                public void onResponse(Call<String> call, Response<String> response) {
-                    System.out.println("uploadSuccess : " + response.body());
-                    // 나중에 dialogue 띄우자
-                }
-                @Override
-                public void onFailure(Call<String> call, Throwable t) {
-                    //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
-                    if (t instanceof HttpException) {
-                        HttpException httpException = (HttpException) t;
-                        int responseCode = httpException.code();
-                        // Now you have the response code
-                        System.out.println("uploadFail : Response code " + responseCode);
-                    } else {
-                        // Handle other types of failures (e.g., network issues)
-                        System.out.println("uploadFail : " + t.getMessage());
-                    }
-                }
-            });
-        } catch(Exception e){
-            System.err.println("savedAudioFile 의 upload 에 실패 했습니다");
-        }
+        //     Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/
+        //                  "AUDIO", "audio file", filePart);
+        //     apicall.enqueue(new Callback<String>(){
+        //         @Override
+        //         public void onResponse(Call<String> call, Response<String> response) {
+        //             System.out.println("uploadSuccess : " + response.body());
+        //             // 나중에 dialogue 띄우자
+        //         }
+        //         @Override
+        //         public void onFailure(Call<String> call, Throwable t) {
+        //             //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+        //             if (t instanceof HttpException) {
+        //                 HttpException httpException = (HttpException) t;
+        //                 int responseCode = httpException.code();
+        //                 // Now you have the response code
+        //                 System.out.println("uploadFail : Response code " + responseCode);
+        //             } else {
+        //                 // Handle other types of failures (e.g., network issues)
+        //                 System.out.println("uploadFail : " + t.getMessage());
+        //             }
+        //         }
+        //     });
+        // } catch(Exception e){
+        //     System.err.println("savedAudioFile 의 upload 에 실패 했습니다");
+        // }
   
     }
 
