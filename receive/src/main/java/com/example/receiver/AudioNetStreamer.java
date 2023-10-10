@@ -1,18 +1,10 @@
 package com.example.receiver;
 
 import io.socket.client.Socket;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.HttpException;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.Retrofit.Builder;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import javax.sound.sampled.*;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,16 +24,19 @@ public class AudioNetStreamer implements Runnable{
     private final String savedAudioFileName = "savedAudio.wav";
     private Uploader uploader = null;
 
+    private JPanel parent = null;
+
     // public AudioNetStreamer(Socket socket, String accessToken){
     //     this.socket = socket;
     //     this.accessToken = accessToken;
     //     this.audioFile = new File(savedAudioFileName);
     // }
 
-    public AudioNetStreamer(Socket socket, Uploader uploader){
+    public AudioNetStreamer(Socket socket, Uploader uploader, JPanel parent){
         this.socket = socket;
         this.audioFile = new File(savedAudioFileName);
         this.uploader = uploader;
+        this.parent = parent;
     }
 
     public void stopStreaming(){
@@ -117,6 +112,8 @@ public class AudioNetStreamer implements Runnable{
 
             if(!AudioSystem.isLineSupported(info) ){    // 앞이 microphone, 뒤가 speaker
                 System.err.println("Audio line not supported");
+                JOptionPane.showMessageDialog(parent, "음성 입력 장치가 지원되지 않습니다, 마이크를 확인하세요");
+                // StartStreamin 버튼 활성화 필요
                 return ;
             } else {
                 System.out.println("Audio line supported");

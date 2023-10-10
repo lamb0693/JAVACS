@@ -5,6 +5,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
+import javax.swing.JOptionPane;
 
 public class AudioStreamer implements Runnable{
     private static final int SAMPLE_RATE = 44100;
@@ -12,9 +13,11 @@ public class AudioStreamer implements Runnable{
     public boolean bStreaming = true;
     TargetDataLine targetDataLine = null;
     SourceDataLine sourceDataLine = null;
+    WndFrame parent = null;
 
-    public AudioStreamer(){
+    public AudioStreamer(WndFrame parent){
  //       init();
+        this.parent = parent;
     }
 
     private void init(){
@@ -29,6 +32,7 @@ public class AudioStreamer implements Runnable{
 
     @Override
     public void run() {
+        final WndFrame parentWnd = this.parent;
         // TODO Auto-generated method stub
         //throw new UnsupportedOperationException("Unimplemented method 'run'");
         try{
@@ -39,6 +43,7 @@ public class AudioStreamer implements Runnable{
 
             if(!AudioSystem.isLineSupported(info) || !AudioSystem.isLineSupported(sourceInfo)){    // 앞이 microphone, 뒤가 speaker
                 System.err.println("Audio line not supported");
+                JOptionPane.showMessageDialog(parentWnd, "Audio line not supported, 시작할 수 없어요");
                 return ;
             }
 
@@ -61,6 +66,7 @@ public class AudioStreamer implements Runnable{
             }
         } catch(Exception e){
             System.err.println(e.getMessage());
+            JOptionPane.showMessageDialog(parentWnd, "Audio thread error"+e.getMessage());
         }
     }
     

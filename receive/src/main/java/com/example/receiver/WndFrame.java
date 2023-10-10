@@ -49,6 +49,8 @@ public class WndFrame extends JFrame {
     JLabel txtCustomerTel = null;
     JLabel txtLoginState = null;
 
+    JButton btnStartStreaming = null;
+
     public WndFrame() {
         initSocket();
         uploader = new Uploader(this);
@@ -267,7 +269,7 @@ public class WndFrame extends JFrame {
         /** 
          * Button Start and stop streaming microphone
          */
-        JButton btnStartStreaming = new JButton("음성 전달 켜기", null);
+        btnStartStreaming = new JButton("음성 전달 켜기", null);
         panelNorth.add(btnStartStreaming);
         btnStartStreaming.addActionListener(new ActionListener() {
             @Override
@@ -280,7 +282,7 @@ public class WndFrame extends JFrame {
                 if(audioStreamer == null){
                     thisButton.setEnabled(false);
                     thisButton.setBackground(Color.RED);
-                    audioStreamer = new AudioNetStreamer(socket, uploader);
+                    audioStreamer = new AudioNetStreamer(socket, uploader, panelNorth);
                     Thread audioThread = new Thread(audioStreamer);
                     audioThread.start();
                     thisButton.setText("음성 전달 끄기");
@@ -438,4 +440,7 @@ public class WndFrame extends JFrame {
         txtLoginState.setText(tel);
     }
 
+    public JButton getButtonStartStreaming(){
+        return this.btnStartStreaming;
+    }
 }

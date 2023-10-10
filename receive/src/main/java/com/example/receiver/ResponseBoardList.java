@@ -4,9 +4,18 @@ public class ResponseBoardList {
     private Long board_id;
     private String name;
     private String content;
+    private boolean bReplied;
     private String message;
     private String  strUpdatedAt;
     
+    public void setbReplied(boolean bReplied) {
+        this.bReplied = bReplied;
+    }
+
+    public void setStrUpdatedAt(String strUpdatedAt) {
+        this.strUpdatedAt = strUpdatedAt;
+    }
+
     public ResponseBoardList() {
     }
 
@@ -20,6 +29,14 @@ public class ResponseBoardList {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isbReplied() {
+        return bReplied;
+    }
+
+    public String getStrUpdatedAt() {
+        return strUpdatedAt;
     }
 
     public void setName(String name) {
