@@ -365,44 +365,54 @@ public class WndFrame extends JFrame {
         btnUpload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                btnUpload.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
-                Builder builder = new Retrofit.Builder();
-                //***** */ JSON 용
-                // GsonBuilder gsonBuilder = new GsonBuilder();
-                // Gson gson = gsonBuilder.setLenient().create();
-                //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
-                /* plain-text용 gradle 추가 필요함 */
-                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
-                
-                INetworkService iNetworkService = retrofit.create(INetworkService.class);
- 
-                File upFile = new File("e:\\sql.txt");
-                RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
-                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
-
-                Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/"01031795981", "TEXT", "Hello Java", filePart);
-                apicall.enqueue(new Callback<String>(){
-                    @Override
-                    public void onResponse(Call<String> call, Response<String> response) {
-                        JOptionPane.showMessageDialog(loginPanel, "uploadSuccess : " + response.body());
-                    }
-                    @Override
-                    public void onFailure(Call<String> call, Throwable t) {
-                        //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
-                        if (t instanceof HttpException) {
-                            HttpException httpException = (HttpException) t;
-                            int responseCode = httpException.code();
-                            // Now you have the response code
-                            JOptionPane.showMessageDialog(loginPanel, "uploadFail : Response code " + responseCode);
-                        } else {
-                            // Handle other types of failures (e.g., network issues)
-                            JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
-                        }
-                    }
-                });
-                btnUpload.setEnabled(true);
+                CustomModalDialog csrCanvas = new CustomModalDialog(uploader);
+                csrCanvas.showDialog();
             }
         });
+
+
+        // uploade Test용 ActionListern
+        // btnUpload.addActionListener(new ActionListener() {
+        //     @Override
+        //     public void actionPerformed(ActionEvent e) {
+        //         btnUpload.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
+        //         Builder builder = new Retrofit.Builder();
+        //         //***** */ JSON 용
+        //         // GsonBuilder gsonBuilder = new GsonBuilder();
+        //         // Gson gson = gsonBuilder.setLenient().create();
+        //         //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
+        //         /* plain-text용 gradle 추가 필요함 */
+        //         Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
+                
+        //         INetworkService iNetworkService = retrofit.create(INetworkService.class);
+ 
+        //         File upFile = new File("e:\\sql.txt");
+        //         RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
+        //         MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
+
+        //         Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/"01031795981", "TEXT", "Hello Java", filePart);
+        //         apicall.enqueue(new Callback<String>(){
+        //             @Override
+        //             public void onResponse(Call<String> call, Response<String> response) {
+        //                 JOptionPane.showMessageDialog(loginPanel, "uploadSuccess : " + response.body());
+        //             }
+        //             @Override
+        //             public void onFailure(Call<String> call, Throwable t) {
+        //                 //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+        //                 if (t instanceof HttpException) {
+        //                     HttpException httpException = (HttpException) t;
+        //                     int responseCode = httpException.code();
+        //                     // Now you have the response code
+        //                     JOptionPane.showMessageDialog(loginPanel, "uploadFail : Response code " + responseCode);
+        //                 } else {
+        //                     // Handle other types of failures (e.g., network issues)
+        //                     JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
+        //                 }
+        //             }
+        //         });
+        //         btnUpload.setEnabled(true);
+        //     }
+        // });
 
         //this.pack();
         addWindowListener(new WindowAdapter() {

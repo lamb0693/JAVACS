@@ -18,6 +18,7 @@ public class CustomModalDialog {
     String text = null;
     ArrayList<ArrayList<Point>> lineList = null;
     CSRCanvas canvas = null;
+    Uploader uploader = null;
 
 
     public CustomModalDialog(Window wnd){
@@ -29,6 +30,14 @@ public class CustomModalDialog {
         this.wnd = wnd;
         dialog = new JDialog(this.wnd, "Modal Dialog");
         this.text= text;
+    }
+
+    // CSRCanvas uploader 
+    // 빈 canvas로 시작
+    public CustomModalDialog(Uploader uploader ){
+        this.uploader = uploader;
+        canvas = new CSRCanvas();
+        canvas.init();
     }
 
     public CustomModalDialog(CounselList counselList, String text, ArrayList<ArrayList<Point>> lineList){
@@ -56,8 +65,8 @@ public class CustomModalDialog {
     public void showDialog() {
         dialog.setModalityType(JDialog.ModalityType.APPLICATION_MODAL);
 
-
-        JLabel label = new JLabel(text);
+        JLabel label = null;
+        if(text!=null) label = new JLabel(text);
         JButton closeButton = new JButton("Close");
 
         closeButton.addActionListener(new ActionListener() {
@@ -68,7 +77,7 @@ public class CustomModalDialog {
         });
 
         dialog.setLayout(new BorderLayout());
-        dialog.add(label, BorderLayout.NORTH);
+        if (label!=null)dialog.add(label, BorderLayout.NORTH);
         dialog.add(canvas, BorderLayout.CENTER);
         dialog.add(closeButton, BorderLayout.SOUTH);
 

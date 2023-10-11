@@ -28,6 +28,7 @@ public class CounselList  extends JList<Object> implements MouseListener {
     private DefaultListModel<Object> model = null;
     Socket socket = null;
     WndFrame wndFrame = null;
+    List<ResponseBoardList> list = new ArrayList<>();
 
     public CounselList(Socket socket, WndFrame wndFrame){
         this.socket = socket;
@@ -103,13 +104,14 @@ public class CounselList  extends JList<Object> implements MouseListener {
             public void onResponse(Call<List<ResponseBoardList>> arg0, Response<List<ResponseBoardList>> arg1) {
                 System.out.println("api call success");
                 if( arg1.isSuccessful() ) {
-                    List<ResponseBoardList> boardList = arg1.body();
+                    list = arg1.body();
                     clearList();
-                    for(ResponseBoardList board : boardList){
+                    for(ResponseBoardList board : list){
                         //System.out.println(board.getName());
-                        addString(board.getName(), board.getContent()+","+board.getMessage());
+                        // data 저장
+                        addString( board.getName() + " >> ", board.getMessage() + "   첨부 메시지 : >> " + board.getContent() + "   " + board.getStrUpdatedAt());
                     }
-                    System.out.println(boardList);
+                    //System.out.println(list);
                     JOptionPane.showMessageDialog(wndFrame, "list downloaded");
                 } else {
                     int response  = arg1.code();
