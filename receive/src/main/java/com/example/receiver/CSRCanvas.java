@@ -3,13 +3,19 @@ package com.example.receiver;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.awt.*;
 
@@ -33,15 +39,61 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
             socket.on("canvas_data", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
-                    byte[] receivedData = (byte[]) args[0];
-                    ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
-                    try{
-                        ObjectInputStream ois = new ObjectInputStream(bais);
-                        lineList = (ArrayList<ArrayList<Point>> )ois.readObject();
-                    } catch (Exception e){
-                        System.out.println("Casting error in CSRCanvas");
+                    ArrayList<ArrayList<FloatPoint>> lineListF = null;
+
+                    try {
+                        // Create Gson instance
+                        Gson gson = new Gson();
+
+                        // Deserialize JSON data into your data structure
+
+                        String jsonData = (String) args[0];
+                        lineListF = gson.fromJson(
+                                jsonData,
+                                new TypeToken<ArrayList<ArrayList<FloatPoint>>>() {}.getType()
+                        );
+  
+
+                        // Now you have your data in lineListF
+                        for (ArrayList<FloatPoint> lineF : lineListF) {
+                            for (FloatPoint pointF : lineF) {
+                                System.out.println("x: " + pointF.x + ", y: " + pointF.y);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // Handle any file I/O exceptions
                     }
-                    repaint();;
+
+                    if(lineListF == null){
+                        System.err.println("read failed");
+                    }
+
+                    ArrayList<ArrayList<Point>> newLineList = new ArrayList<>();
+                    for(ArrayList<FloatPoint> lineF : lineListF){
+                        ArrayList<Point> newLine = new ArrayList<>();
+                        for(FloatPoint pointF : lineF){
+                            Point point = new Point((int)pointF.x, (int)pointF.y);
+                            newLine.add(point);
+                        }
+                        newLineList.add(newLine);
+                    }
+
+                    lineList = newLineList;
+
+                    repaint();
+
+
+
+                    // byte[] receivedData = (byte[]) args[0];
+                    // ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
+                    // try{
+                    //     ObjectInputStream ois = new ObjectInputStream(bais);
+                    //     lineList = (ArrayList<ArrayList<Point>> )ois.readObject();
+                    // } catch (Exception e){
+                    //     System.out.println("Casting error in CSRCanvas");
+                    // }
+                    // repaint();;
                 }
             });
 
@@ -58,26 +110,70 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
     }
 
     public CSRCanvas(String filePath){
-        FileInputStream fileInputStream = null;
-        ObjectInputStream objectInputStream = null;
-        try{
-            fileInputStream = new FileInputStream(filePath);
-            objectInputStream = new ObjectInputStream(fileInputStream);
+        //*****안드로이드와 호환을 위해 json으로 바꿔 저장 된 것 읽기*/
 
-            // Read the object from the file
-            
-            lineList =   ( ArrayList<ArrayList<Point>>) objectInputStream.readObject();
-            if(lineList == null) throw new RuntimeException("not a line data file");
-        } catch(Exception e){
-            System.out.println(e.getMessage());
-        } finally {
-            try{
-                objectInputStream.close();
-                fileInputStream.close();
-            } catch (Exception e){
-                System.out.println(e.getMessage());
+        ArrayList<ArrayList<FloatPoint>> lineListF = null;
+
+        try {
+            // Create Gson instance
+            Gson gson = new Gson();
+
+            // Deserialize JSON data into your data structure
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+                lineListF = gson.fromJson(
+                    reader,
+                    new TypeToken<ArrayList<ArrayList<FloatPoint>>>() {}.getType()
+                );
             }
+
+            // Now you have your data in lineListF
+            for (ArrayList<FloatPoint> lineF : lineListF) {
+                for (FloatPoint pointF : lineF) {
+                    System.out.println("x: " + pointF.x + ", y: " + pointF.y);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle any file I/O exceptions
         }
+
+        if(lineListF == null){
+            System.err.println("read failed");
+        }
+        ArrayList<ArrayList<Point>> newLineList = new ArrayList<>();
+        for(ArrayList<FloatPoint> lineF : lineListF){
+            ArrayList<Point> newLine = new ArrayList<>();
+            for(FloatPoint pointF : lineF){
+                Point point = new Point((int)pointF.x, (int)pointF.y);
+                newLine.add(point);
+            }
+            newLineList.add(newLine);
+        }
+
+        this.lineList = newLineList;
+
+
+        // FileInputStream fileInputStream = null;
+        // ObjectInputStream objectInputStream = null;
+        // try{
+        //     fileInputStream = new FileInputStream(filePath);
+        //     objectInputStream = new ObjectInputStream(fileInputStream);
+
+        //     // Read the object from the file
+            
+        //     lineList =   ( ArrayList<ArrayList<Point>>) objectInputStream.readObject();
+        //     if(lineList == null) throw new RuntimeException("not a line data file");
+        // } catch(Exception e){
+        //     System.out.println(e.getMessage());
+        // } finally {
+        //     try{
+        //         objectInputStream.close();
+        //         fileInputStream.close();
+        //     } catch (Exception e){
+        //         System.out.println(e.getMessage());
+        //     }
+        // }
         
     }
 
@@ -125,22 +221,47 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
     }
 
     public void saveCurrentImage(){
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream("boardImage.csr");
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        ArrayList<ArrayList<FloatPoint>> lineListF = new ArrayList<>();
+        // convert lineList
+        for(ArrayList<Point> line : lineList){
+            ArrayList<FloatPoint> lineF = new ArrayList<>();
+            for(Point point : line){
+                FloatPoint pointF = new FloatPoint(point.x, point.y);
+                lineF.add(pointF);
+            }
+            lineListF.add(lineF);
+        }
 
-            // Write the object to the file
-            objectOutputStream.writeObject(lineList);
+        // Create Gson instance
+        Gson gson = new Gson();
 
-            objectOutputStream.close();
-            fileOutputStream.close();
+        // Convert lineListF to JSON
+        String json = gson.toJson(lineListF);
 
-            clearAll();
-
-            System.out.println("ArrayList saved to boardImage.csr");
-        } catch (Exception e) {
+        // Save the JSON to a file
+        try (FileWriter writer = new FileWriter("boardImage.json")) {
+            writer.write(json);
+        } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //*****안드로이드와 호환을 위해 json으로 바꿔 저장 */
+        // try {
+        //     FileOutputStream fileOutputStream = new FileOutputStream("boardImage.csr");
+        //     ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+
+        //     // Write the object to the file
+        //     objectOutputStream.writeObject(lineList);
+
+        //     objectOutputStream.close();
+        //     fileOutputStream.close();
+
+        //     clearAll();
+
+        //     System.out.println("ArrayList saved to boardImage.csr");
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 
     @Override

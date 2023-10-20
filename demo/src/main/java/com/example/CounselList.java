@@ -69,7 +69,7 @@ public class CounselList extends JList<Object> implements MouseListener{
         //System.out.println(e.getClickCount());
         int index = locationToIndex(e.getPoint());
         System.out.println("row in JList : " + index);
-        CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\javaclass\\abuji\\CSNet\\demo\\boardImage.csr");
+        CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\javaclass\\abuji\\CSNet\\demo\\boardImage.json");
         customModalDialog.showDialog();
     }
 
