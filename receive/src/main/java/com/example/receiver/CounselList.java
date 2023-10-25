@@ -29,10 +29,12 @@ public class CounselList  extends JList<Object> implements MouseListener {
     Socket socket = null;
     WndFrame wndFrame = null;
     List<ResponseBoardList> list = new ArrayList<>();
+    Downloader downloader = null;
 
     public CounselList(Socket socket, WndFrame wndFrame){
         this.socket = socket;
         this.wndFrame = wndFrame;
+        this.downloader = new Downloader(wndFrame);
 
         // update 통합
         try {
@@ -165,7 +167,10 @@ public class CounselList  extends JList<Object> implements MouseListener {
         if(e.getClickCount()==2){
             int index = locationToIndex(e.getPoint());
             System.out.println("row in JList : " + index);
-            CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\javaclass\\abuji\\CSNet\\demo\\boardImage.json");
+            downloader.setAccessToken(wndFrame.getAccessToken());
+            downloader.downloadFile(3L);
+            
+            CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\ldw\\JAVACS\\receive\\boardImage.json");
             customModalDialog.showDialog();
         };
     }

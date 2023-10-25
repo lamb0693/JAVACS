@@ -115,10 +115,7 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
         ArrayList<ArrayList<FloatPoint>> lineListF = null;
 
         try {
-            // Create Gson instance
             Gson gson = new Gson();
-
-            // Deserialize JSON data into your data structure
 
             try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
                 lineListF = gson.fromJson(
@@ -127,7 +124,6 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                 );
             }
 
-            // Now you have your data in lineListF
             for (ArrayList<FloatPoint> lineF : lineListF) {
                 for (FloatPoint pointF : lineF) {
                     System.out.println("x: " + pointF.x + ", y: " + pointF.y);
@@ -135,12 +131,12 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
             }
         } catch (IOException e) {
             e.printStackTrace();
-            // Handle any file I/O exceptions
         }
 
         if(lineListF == null){
             System.err.println("read failed");
         }
+
         ArrayList<ArrayList<Point>> newLineList = new ArrayList<>();
         for(ArrayList<FloatPoint> lineF : lineListF){
             ArrayList<Point> newLine = new ArrayList<>();
@@ -152,6 +148,8 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
         }
 
         this.lineList = newLineList;
+
+        this.reScale(0.5f);
 
 
         // FileInputStream fileInputStream = null;
@@ -218,6 +216,20 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
         // lineList.clear();
         // socket.emit("canvas_data", lineList);
         // repaint();
+    }
+
+    public void reScale(float scale){
+        ArrayList<ArrayList<Point>> newLineList = new ArrayList<>();
+        for(ArrayList<Point> line : lineList){
+            ArrayList<Point> newLine = new ArrayList<>();
+            for(Point point : line){
+                Point newPoint = new Point((int)(point.x*scale), (int)(point.y*scale));
+                newLine.add(newPoint);
+            }
+            newLineList.add(newLine);
+        }
+
+        this.lineList = newLineList;    
     }
 
     public void saveCurrentImage(){
