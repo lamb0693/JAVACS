@@ -4,14 +4,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -124,11 +119,12 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                 );
             }
 
-            for (ArrayList<FloatPoint> lineF : lineListF) {
-                for (FloatPoint pointF : lineF) {
-                    System.out.println("x: " + pointF.x + ", y: " + pointF.y);
-                }
-            }
+            // data 확인 용
+            // for (ArrayList<FloatPoint> lineF : lineListF) {
+            //     for (FloatPoint pointF : lineF) {
+            //         System.out.println("x: " + pointF.x + ", y: " + pointF.y);
+            //     }
+            // }
         } catch (IOException e) {
             e.printStackTrace();
         }

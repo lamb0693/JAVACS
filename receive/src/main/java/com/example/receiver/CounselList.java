@@ -5,8 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseListener;
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,17 +23,37 @@ import retrofit2.Retrofit;
 import retrofit2.Retrofit.Builder;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class CounselList  extends JList<Object> implements MouseListener {
+public class CounselList  extends JList<Object> implements MouseListener{
     private DefaultListModel<Object> model = null;
     Socket socket = null;
     WndFrame wndFrame = null;
     List<ResponseBoardList> list = new ArrayList<>();
     Downloader downloader = null;
+    String downFileName = null;
+
+    class MyDownloadCallback implements DownloadCallback {
+
+        @Override
+        public void onDownloadComplete(boolean success, String content) {
+            switch(content){
+                case "TEXT" : break;
+                case "PAINT" :
+                    CustomModalDialog customModalDialog = new CustomModalDialog(CounselList.this, "lineList", "./" + downFileName);
+                    customModalDialog.showDialog();
+                    break;
+                case "AUDIO" :
+                    AudioPlayer audioPlayer = new AudioPlayer(downFileName);
+                    audioPlayer.playAudio();
+                    break;            
+            }
+        }
+    }
+
 
     public CounselList(Socket socket, WndFrame wndFrame){
         this.socket = socket;
         this.wndFrame = wndFrame;
-        this.downloader = new Downloader(wndFrame);
+        this.downloader = new Downloader(wndFrame, new MyDownloadCallback());
 
         // update 통합
         try {
@@ -95,7 +114,7 @@ public class CounselList  extends JList<Object> implements MouseListener {
         Builder builder = new Retrofit.Builder();
         Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
         INetworkService iNetworkService = retrofit.create(INetworkService.class);
-        Call<List<ResponseBoardList>> apicall = iNetworkService.listBoard("Bearer:"+wndFrame.getAccessToken(), tel, 10);
+        Call<List<ResponseBoardList>> apicall = iNetworkService.listBoard("Bearer:"+wndFrame.getAccessToken(), tel, 30);
         apicall.enqueue(new Callback<List<ResponseBoardList>>(){
             @Override
             public void onFailure(Call<List<ResponseBoardList>> arg0, Throwable arg1) {
@@ -165,13 +184,35 @@ public class CounselList  extends JList<Object> implements MouseListener {
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
         if(e.getClickCount()==2){
+            //System.out.println("row in JList : " + index);
             int index = locationToIndex(e.getPoint());
-            System.out.println("row in JList : " + index);
-            downloader.setAccessToken(wndFrame.getAccessToken());
-            downloader.downloadFile(3L);
-            
-            CustomModalDialog customModalDialog = new CustomModalDialog(this, "lineList", "C:\\ldw\\JAVACS\\receive\\boardImage.json");
-            customModalDialog.showDialog();
+            Long boardNo = list.get(index).getBoard_id();
+            String fileType = list.get(index).getContent();
+            System.out.println("contentType=" + list.get(index).getContent());
+            if( fileType.equals("TEXT") ) return;
+            else {
+                
+                downloader.setAccessToken(wndFrame.getAccessToken());
+
+                switch(fileType){
+                    case "PAINT" :
+                        downFileName = "download.csr";
+                        downloader.setSaveFilePath(downFileName);
+                        downloader.setContentType("PAINT");
+                        // 실행만 시키고 결과는 callback에서
+                        downloader.downloadFile(boardNo);
+                        break;
+                    case "AUDIO" :
+                        downFileName = "download.wav";
+                        downloader.setSaveFilePath(downFileName);
+                        downloader.setContentType("AUDIO");
+                        // 실행만 시키고 결과는 callback에서
+                        downloader.downloadFile(boardNo);
+                        break;
+                    default :
+                        System.err.println("Error in file type");
+                }
+            }
         };
     }
 
@@ -189,5 +230,6 @@ public class CounselList  extends JList<Object> implements MouseListener {
 
     @Override
     public void mouseExited(java.awt.event.MouseEvent e) {
-    }    
+    }
+  
 }

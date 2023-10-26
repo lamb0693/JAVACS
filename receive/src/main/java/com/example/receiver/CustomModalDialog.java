@@ -1,7 +1,6 @@
 package com.example.receiver;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
