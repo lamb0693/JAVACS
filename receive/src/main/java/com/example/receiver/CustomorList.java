@@ -5,6 +5,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -23,11 +26,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.ByteArrayInputStream;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.ArrayList;
 
 class RoomInfo {
@@ -63,31 +62,36 @@ public class CustomorList extends JList<String> implements MouseListener{
         this.wndFrame = wndFrame;
         this.socket = socket;
 
+        socket.on("counsel_rooms_info", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                try {
+                    System.out.println(args[0]);
 
+                    if (args[0] instanceof JSONArray) {
+                        model.clear();
 
-        try {
-            socket.on("counsel_rooms_info", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    ArrayList<RoomInfo> roomList = new ArrayList<>();
-                    try{
-                        System.out.println(args[0]);
+                        JSONArray jsonArray = (JSONArray) args[0];
+                        
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
 
-                        Gson gson = new Gson();
-                        String jsonData = (String) args[0];
-                        Type roomInfoListType = new TypeToken<ArrayList<RoomInfo>>() {}.getType();
-                        roomList = gson.fromJson(jsonData, roomInfoListType);
-                        System.out.println(roomList.toString());
+                            String roomName = jsonObject.getString("roomName");
 
-                    } catch (Exception e){
-                        System.out.println("Casting error in CustomorList");
+                            System.out.println(roomName);
+                            model.addElement(roomName);
+                        }
+                    } else {
+                        System.out.println("Unexpected data type in args[0]");
                     }
-                }
-            });
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                } catch (Exception e) {
+                    System.out.println("Error handling data");
+                }    
+            }
+        });
+
+ 
 
 
         this.setBackground(Color.green);
@@ -98,8 +102,6 @@ public class CustomorList extends JList<String> implements MouseListener{
         this.setCellRenderer(new CustomCellRenderer());
         this.addMouseListener(this);
 
-        model.addElement("01031795981");
-        model.addElement("01068011307");
     }
 
     private class CustomCellRenderer extends javax.swing.DefaultListCellRenderer{
@@ -135,39 +137,13 @@ public class CustomorList extends JList<String> implements MouseListener{
     private void setItemsInCounselList(String tel){
         final CounselList counselList = wndFrame.getCounselList();
         counselList.readFromBoard(tel);
-        // Builder builder = new Retrofit.Builder();
-        // Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
-        // INetworkService iNetworkService = retrofit.create(INetworkService.class);
-        // Call<List<ResponseBoardList>> apicall = iNetworkService.listBoard("Bearer:"+wndFrame.getAccessToken(), tel, 10);
-        // apicall.enqueue(new Callback<List<ResponseBoardList>>(){
-        //     @Override
-        //     public void onFailure(Call<List<ResponseBoardList>> arg0, Throwable arg1) {
-        //         System.out.println("api call failure");
-  
-        //     }
-        //     @Override
-        //     public void onResponse(Call<List<ResponseBoardList>> arg0, Response<List<ResponseBoardList>> arg1) {
-        //         System.out.println("api call success");
-        //         if( arg1.isSuccessful() ) {
-        //             List<ResponseBoardList> boardList = arg1.body();
-        //             counselList.clearList();
-        //             for(ResponseBoardList board : boardList){
-        //                 //System.out.println(board.getName());
-        //                 counselList.addString(board.getName(), board.getContent()+","+board.getMessage());
-        //             }
-        //             System.out.println(boardList);
-        //             JOptionPane.showMessageDialog(wndFrame, "list downloaded");
-        //         } else {
-        //             int response  = arg1.code();
-        //             JOptionPane.showMessageDialog(wndFrame, "resoponse not ok :" + response);
-        //         }
-        //     }
-        // });
-
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if(wndFrame.getAccessToken() == null || wndFrame.getAccessToken().equals("")){
+            JOptionPane.showMessageDialog(wndFrame, "login 먼저 하세요");
+        }
         if(e.getClickCount()==2){
             int index = locationToIndex(e.getPoint());
             System.out.println("row in JList : " + index);

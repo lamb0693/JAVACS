@@ -37,10 +37,7 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                     ArrayList<ArrayList<FloatPoint>> lineListF = null;
 
                     try {
-                        // Create Gson instance
                         Gson gson = new Gson();
-
-                        // Deserialize JSON data into your data structure
 
                         String jsonData = (String) args[0];
                         lineListF = gson.fromJson(
@@ -48,16 +45,13 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                                 new TypeToken<ArrayList<ArrayList<FloatPoint>>>() {}.getType()
                         );
   
-
-                        // Now you have your data in lineListF
                         for (ArrayList<FloatPoint> lineF : lineListF) {
                             for (FloatPoint pointF : lineF) {
                                 System.out.println("x: " + pointF.x + ", y: " + pointF.y);
                             }
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        // Handle any file I/O exceptions
+                        System.err.println(e.getMessage());
                     }
 
                     if(lineListF == null){
@@ -77,8 +71,6 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
                     lineList = newLineList;
 
                     repaint();
-
-
 
                     // byte[] receivedData = (byte[]) args[0];
                     // ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
