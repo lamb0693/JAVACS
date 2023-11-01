@@ -40,8 +40,8 @@ public class Downloader {
 
         builder = new Retrofit.Builder();
         retrofit = builder.baseUrl("http://localhost:8080/")
-            .addConverterFactory(ScalarsConverterFactory.create()) // For raw responses
-            .addConverterFactory(GsonConverterFactory.create(gson)) // For JSON conversion, if needed
+            .addConverterFactory(ScalarsConverterFactory.create()) // raw responses
+            .addConverterFactory(GsonConverterFactory.create(gson)) // JSON conversion
             .build();
         iNetworkService = retrofit.create(INetworkService.class);
         this.wndFrame = wndFrame;

@@ -5,6 +5,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import retrofit2.Call;
@@ -21,9 +24,32 @@ import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+
+class RoomInfo {
+    int roomSize; 
+    String roomName; 
+
+    public int getRoomSize() {
+        return roomSize;
+    }
+
+    public void setRoomSize(int roomSize) {
+        this.roomSize = roomSize;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+}
 
 
 public class CustomorList extends JList<String> implements MouseListener{
@@ -33,21 +59,26 @@ public class CustomorList extends JList<String> implements MouseListener{
     private WndFrame wndFrame;
     private Socket socket = null;
 
-
     public CustomorList(WndFrame wndFrame, Socket socket){
         this.wndFrame = wndFrame;
         this.socket = socket;
 
+
+
         try {
-            socket.on("create_room_result", new Emitter.Listener() {
+            socket.on("counsel_rooms_info", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
-                    System.out.println("create_room_result called");
-                    // 자바 프로그램에서 온 data는 이렇게 해야 되는데 node에서 온것은 이렇게 하면 error
-                    // byte[] receivedData = (byte[]) args[0];
-                    // ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
+                    ArrayList<RoomInfo> roomList = new ArrayList<>();
                     try{
-                        System.out.println((String)args[0]);
+                        System.out.println(args[0]);
+
+                        Gson gson = new Gson();
+                        String jsonData = (String) args[0];
+                        Type roomInfoListType = new TypeToken<ArrayList<RoomInfo>>() {}.getType();
+                        roomList = gson.fromJson(jsonData, roomInfoListType);
+                        System.out.println(roomList.toString());
+
                     } catch (Exception e){
                         System.out.println("Casting error in CustomorList");
                     }
