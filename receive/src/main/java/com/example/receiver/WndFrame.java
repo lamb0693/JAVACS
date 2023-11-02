@@ -79,6 +79,10 @@ public class WndFrame extends JFrame {
         }
     }
 
+    public void sendUpdateBoardMessageToChatServer(){
+        socket.emit("update_board", "새로운 message");
+    }
+
     private void initWindow(){
         this.setLayout(new BorderLayout());
 
@@ -438,7 +442,7 @@ public class WndFrame extends JFrame {
         return this.uploader;
     }
 
-    public String getCustomorTel(){
+    final public String getCustomorTel(){
         return this.txtCustomerTel.getText();
     }
 
@@ -453,4 +457,5 @@ public class WndFrame extends JFrame {
     public JButton getButtonStartStreaming(){
         return this.btnStartStreaming;
     }
+
 }

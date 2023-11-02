@@ -51,19 +51,19 @@ public class CounselList  extends JList<Object> implements MouseListener{
 
 
     public CounselList(Socket socket, WndFrame wndFrame){
-        this.socket = socket;
         this.wndFrame = wndFrame;
+        this.socket = socket;
         this.downloader = new Downloader(wndFrame, new MyDownloadCallback());
+        final WndFrame finalWndFrame = wndFrame; 
 
-        // update 통합
         try {
-            socket.on("board_updated", new Emitter.Listener() {
+            socket.on("update_board", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     try{
-
+                        readFromBoard(finalWndFrame.getCustomorTel());
                     } catch (Exception e){
-                        System.out.println("Casting error in CSRCanvas");
+                        System.err.println(e.getMessage());
                     }
                     repaint();;
                 }
@@ -72,30 +72,6 @@ public class CounselList  extends JList<Object> implements MouseListener{
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // try {
-        //     socket.on("chat_data", new Emitter.Listener() {
-        //         @Override
-        //         public void call(Object... args) {
-        //             // 자바 프로그램에서 온 data는 이렇게 해야 되는데 node에서 온것은 이렇게 하면 error
-        //             //byte[] receivedData = (byte[]) args[0];
-        //             //ByteArrayInputStream bais = new ByteArrayInputStream(receivedData);
-        //             try{
-        //                 //ObjectInputStream ois = new ObjectInputStream(bais);
-        //             //    String strReceived = new String(receivedData, "EUC_KR");
-        //                 // node에서 온것은 바로 이렇게
-        //                 String strReceived = (String) args[0];
-        //                 addString("client", strReceived);
-        //             } catch (Exception e){
-        //                 System.out.println("Casting error in CSRCanvas");
-        //             }
-        //             repaint();;
-        //         }
-        //     });
-
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
         
         this.setBackground(Color.LIGHT_GRAY);
 
@@ -104,9 +80,6 @@ public class CounselList  extends JList<Object> implements MouseListener{
 
         this.setCellRenderer(new CustomCellRenderer());
         this.addMouseListener(this);
-
-        model.addElement("01031795981");
-        model.addElement("01068011307");
     }
 
     // 스프링 백엔드에서 데이터를 읽어옴

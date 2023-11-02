@@ -61,7 +61,9 @@ public class Uploader {
                     if( response.isSuccessful() ) {
                         JOptionPane.showMessageDialog(wndFrame, "upload success: " + response.body());
                         resultUpload = true;
-                        wndFrame.getCounselList().readFromBoard(wndFrame.getCustomorTel());
+                        // board update및 server로 보낸다==>room으로 보내는 것으로 고쳐야 update board가 되 돌아와서 update
+                        // wndFrame.getCounselList().readFromBoard(wndFrame.getCustomorTel());
+                        wndFrame.sendUpdateBoardMessageToChatServer();
                     } else {
                         JOptionPane.showMessageDialog(wndFrame, "resoponse not ok :" + response.code());
                     }
