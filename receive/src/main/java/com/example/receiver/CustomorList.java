@@ -150,6 +150,8 @@ public class CustomorList extends JList<String> implements MouseListener{
             String customerTel = model.get(index);
             setItemsInCounselList(customerTel);
             wndFrame.setCustomorTel(customerTel);
+            //  방에 조인하는 메시지를 보낸다
+            socket.emit("join_room", customerTel);
         };
     }
 
