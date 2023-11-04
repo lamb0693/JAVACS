@@ -3,6 +3,7 @@ package com.example.receiver;
 public class ResponseBoardList {
     private Long board_id;
     private String name;
+    private String tel;
     private String content;
     private boolean bReplied;
     private String message;
@@ -65,6 +66,14 @@ public class ResponseBoardList {
 
     public void setUpdate_date(String update_date) {
         this.strUpdatedAt = update_date;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 
 }

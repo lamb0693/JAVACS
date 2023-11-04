@@ -61,6 +61,8 @@ public class CustomorList extends JList<String> implements MouseListener{
     public CustomorList(WndFrame wndFrame, Socket socket){
         this.wndFrame = wndFrame;
         this.socket = socket;
+        final Socket finalSocket = socket;
+        final WndFrame finalWndFrame = wndFrame;
 
         socket.on("counsel_rooms_info", new Emitter.Listener() {
             @Override
@@ -90,6 +92,27 @@ public class CustomorList extends JList<String> implements MouseListener{
                 }    
             }
         });
+
+        try {
+            socket.on("user_left_room", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    try {
+                        String roomName = (String) args[0];
+                        finalSocket.emit("csr_leave_room", roomName);
+                        model.clear();
+                        finalWndFrame.counselList.clearList();
+                        finalWndFrame.txtCustomerTel.setText("");
+                        JOptionPane.showMessageDialog(finalWndFrame, "고객과의 연결이 끊어 졌습니다");
+                    } catch (Exception e) {
+                        System.err.println(e.getMessage());
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
  
 
@@ -152,6 +175,7 @@ public class CustomorList extends JList<String> implements MouseListener{
             wndFrame.setCustomorTel(customerTel);
             //  방에 조인하는 메시지를 보낸다
             socket.emit("join_room", customerTel);
+            // room out은 counselList에  하자
         };
     }
 
