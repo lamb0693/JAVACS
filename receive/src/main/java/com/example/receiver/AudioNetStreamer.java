@@ -148,9 +148,6 @@ public class AudioNetStreamer implements Runnable{
 
             saveAudioToFile(audioFile);
             uploadSavedAudioFile();
-            /*
-            * socket으로 상담 게시판 update되었다고  message 보내야 함
-            */ 
 
         } catch(Exception e){
             System.err.println(e.getMessage());

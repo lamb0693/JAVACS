@@ -9,7 +9,7 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class AudioNetReceiver implements Runnable{
-    private static final int SAMPLE_RATE = 22000; //44100;
+    private static final int SAMPLE_RATE = 44100; //44100;
     public volatile boolean bReceiving = true;
     SourceDataLine sourceDataLine = null;
 
@@ -20,6 +20,7 @@ public class AudioNetReceiver implements Runnable{
                 @Override
                 public void call(Object... args) {
                         byte[] audioData = (byte[]) args[0];
+                        System.out.println(audioData);
                         try {
                             // Play received audio data
                             sourceDataLine.write(audioData, 0, audioData.length);

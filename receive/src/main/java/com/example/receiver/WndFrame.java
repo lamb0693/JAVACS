@@ -80,7 +80,9 @@ public class WndFrame extends JFrame {
     }
 
     public void sendUpdateBoardMessageToChatServer(){
-        socket.emit("update_board", "새로운 message");
+        // 상담원용 app은 연결되어야 내용 볼 수 있으므로
+        // room에만 보낸다
+        socket.emit("update_board", this.txtCustomerTel.getText());
     }
 
     private void initWindow(){
