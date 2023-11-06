@@ -70,6 +70,8 @@ public class CSRCanvas extends Canvas implements MouseMotionListener, MouseListe
 
                     lineList = newLineList;
 
+                    reScale(0.5f);
+
                     repaint();
 
                     // byte[] receivedData = (byte[]) args[0];

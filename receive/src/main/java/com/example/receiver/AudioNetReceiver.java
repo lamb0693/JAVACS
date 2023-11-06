@@ -22,8 +22,7 @@ public class AudioNetReceiver implements Runnable{
                         byte[] audioData = (byte[]) args[0];
                         System.out.println(audioData);
                         try {
-                            // Play received audio data
-                            sourceDataLine.write(audioData, 0, audioData.length);
+                            if(sourceDataLine!=null) sourceDataLine.write(audioData, 0, audioData.length);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -45,6 +44,7 @@ public class AudioNetReceiver implements Runnable{
     @Override
     public void run() {
         System.out.println("audio_net thread started...");
+        bReceiving = true;
    
         try{
             final AudioFormat audioFormat = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);

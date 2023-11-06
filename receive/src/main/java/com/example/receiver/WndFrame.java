@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -83,6 +84,38 @@ public class WndFrame extends JFrame {
         // 상담원용 app은 연결되어야 내용 볼 수 있으므로
         // room에만 보낸다
         socket.emit("update_board", this.txtCustomerTel.getText());
+    }
+
+    public void startAudioThread(){
+        try {
+            if(audioNetReceiver == null){
+                audioNetReceiver = new AudioNetReceiver(socket);
+                Thread audioThread = new Thread(audioNetReceiver);
+                audioThread.start();
+                System.out.println("audio receiving thread start");
+            }else if(audioNetReceiver!=null && audioNetReceiver.getBReceiving()==true){
+                audioNetReceiver.stopReceiving();;
+                audioNetReceiver = null;
+                System.err.println("audio thread not null, cannot start audio thread");
+            } 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    // user_left_room에 대한 대비는 CustomrList.java에 구현되어 있음
+    public void stopAudioThread(){
+        try {
+            if(audioNetReceiver == null){
+                System.err.println("audio thread null, cannot stop thread");
+            }else if(audioNetReceiver!=null && audioNetReceiver.getBReceiving()==true){
+                audioNetReceiver.stopReceiving();;
+                audioNetReceiver = null;
+                System.out.println("audio thread stopped");
+            } 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     private void initWindow(){
@@ -341,40 +374,65 @@ public class WndFrame extends JFrame {
             }
         });
 
-        JButton btnSpeakerOn = new JButton("음성받기 켜기", null);
-        panelNorth.add(btnSpeakerOn);
-        btnSpeakerOn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JButton thisButton = (JButton)e.getSource();
-                if(audioNetReceiver == null){
-                    thisButton.setEnabled(false);
-                    thisButton.setBackground(Color.RED);
-                    audioNetReceiver = new AudioNetReceiver(socket);
-                    Thread audioThread = new Thread(audioNetReceiver);
-                    audioThread.start();
-                    thisButton.setText("음성받기 끄기");
-                    thisButton.setEnabled(true);
-                }else if(audioNetReceiver!=null && audioNetReceiver.getBReceiving()==true){
-                    thisButton.setEnabled(false);
-                    thisButton.setBackground(Color.LIGHT_GRAY);
-                    audioNetReceiver.stopReceiving();;
-                    thisButton.setText("음성받기 켜기");
-                    thisButton.setEnabled(true);
-                    audioNetReceiver = null;
-                } 
-            }
-        });
+        try {
+            socket.on("customor_audio_started", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    startAudioThread();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        final JButton btnUpload = new JButton("upload");
-        panelNorth.add(btnUpload);
-        btnUpload.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                CustomModalDialog csrCanvas = new CustomModalDialog(uploader);
-                csrCanvas.showDialog();
-            }
-        });
+        // user_left_room에 대한 대비는 CustomrList.java에 구현되어 있음
+        try {
+            socket.on("customor_audio_stopped", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    stopAudioThread();    
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        // 음성 받기 없애고 listener로 대체,  disconnect에 의한 종료도 대비
+        // JButton btnSpeakerOn = new JButton("음성받기 켜기", null);
+        // panelNorth.add(btnSpeakerOn);
+        // btnSpeakerOn.addActionListener(new ActionListener() {
+        //     @Override
+        //     public void actionPerformed(ActionEvent e) {
+        //         JButton thisButton = (JButton)e.getSource();
+        //         if(audioNetReceiver == null){
+        //             thisButton.setEnabled(false);
+        //             thisButton.setBackground(Color.RED);
+        //             audioNetReceiver = new AudioNetReceiver(socket);
+        //             Thread audioThread = new Thread(audioNetReceiver);
+        //             audioThread.start();
+        //             thisButton.setText("음성받기 끄기");
+        //             thisButton.setEnabled(true);
+        //         }else if(audioNetReceiver!=null && audioNetReceiver.getBReceiving()==true){
+        //             thisButton.setEnabled(false);
+        //             thisButton.setBackground(Color.LIGHT_GRAY);
+        //             audioNetReceiver.stopReceiving();;
+        //             thisButton.setText("음성받기 켜기");
+        //             thisButton.setEnabled(true);
+        //             audioNetReceiver = null;
+        //         } 
+        //     }
+        // });
+
+        // final JButton btnUpload = new JButton("upload");
+        // panelNorth.add(btnUpload);
+        // btnUpload.addActionListener(new ActionListener() {
+        //     @Override
+        //     public void actionPerformed(ActionEvent e) {
+        //         CustomModalDialog csrCanvas = new CustomModalDialog(uploader);
+        //         csrCanvas.showDialog();
+        //     }
+        // });
 
 
         // uploade Test용 ActionListern

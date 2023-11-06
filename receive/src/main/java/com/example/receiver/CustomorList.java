@@ -103,6 +103,7 @@ public class CustomorList extends JList<String> implements MouseListener{
                         model.clear();
                         finalWndFrame.counselList.clearList();
                         finalWndFrame.txtCustomerTel.setText("");
+                        finalWndFrame.stopAudioThread();
                         JOptionPane.showMessageDialog(finalWndFrame, "고객과의 연결이 끊어 졌습니다");
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
