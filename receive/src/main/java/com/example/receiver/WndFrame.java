@@ -319,6 +319,9 @@ public class WndFrame extends JFrame {
                 }   
                 JButton thisButton = (JButton)e.getSource();
                 if(audioStreamer == null){
+                    // audio start streaming message를 customer에게 보냄
+                    socket.emit("csr_audio_start", getCustomorTel());
+
                     thisButton.setEnabled(false);
                     thisButton.setBackground(Color.RED);
                     audioStreamer = new AudioNetStreamer(socket, uploader, WndFrame.this);
@@ -327,6 +330,9 @@ public class WndFrame extends JFrame {
                     thisButton.setText("음성 전달 끄기");
                     thisButton.setEnabled(true);
                 }else if(audioStreamer!=null && audioStreamer.getBStreaming()==true){
+                    // audio stop streaming message를 customer에게 보냄
+                    socket.emit("csr_audio_stop", getCustomorTel());
+                    
                     thisButton.setEnabled(false);
                     thisButton.setBackground(Color.LIGHT_GRAY);
                     audioStreamer.stopStreaming();

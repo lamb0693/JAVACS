@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class AudioNetStreamer implements Runnable{
-    private static final int SAMPLE_RATE = 22000; // 44100;
+    private static final int SAMPLE_RATE = 44100; // 44100;
     private static final int AUDIO_BUFFER_SIZE = 1024;
     private boolean bStreaming = true;
     TargetDataLine targetDataLine = null;
