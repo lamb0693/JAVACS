@@ -44,7 +44,11 @@ public class CounselList  extends JList<Object> implements MouseListener{
                 case "AUDIO" :
                     AudioPlayer audioPlayer = new AudioPlayer(downFileName);
                     audioPlayer.playAudio();
-                    break;            
+                    break;  
+                case "IMAGE" :
+                    CustomImageDialog customImageDialog = new CustomImageDialog(wndFrame, "사진 파일", downFileName);   
+                    customImageDialog.showDialog();
+                    break;       
             }
         }
     }
@@ -182,6 +186,11 @@ public class CounselList  extends JList<Object> implements MouseListener{
                         // 실행만 시키고 결과는 callback에서
                         downloader.downloadFile(boardNo);
                         break;
+                    case "IMAGE" :
+                        downFileName = "download.jpg";
+                        downloader.setSaveFilePath(downFileName);
+                        downloader.setContentType("IMAGE");
+                        downloader.downloadFile(boardNo);
                     default :
                         System.err.println("Error in file type");
                 }

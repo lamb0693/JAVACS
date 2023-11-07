@@ -24,7 +24,8 @@ public class AudioNetStreamer implements Runnable{
     private final String savedAudioFileName = "savedAudio.wav";
     private Uploader uploader = null;
 
-    private JPanel parent = null;
+    //private JPanel parent = null;
+    private WndFrame wndFrame = null;
 
     // public AudioNetStreamer(Socket socket, String accessToken){
     //     this.socket = socket;
@@ -32,11 +33,11 @@ public class AudioNetStreamer implements Runnable{
     //     this.audioFile = new File(savedAudioFileName);
     // }
 
-    public AudioNetStreamer(Socket socket, Uploader uploader, JPanel parent){
+    public AudioNetStreamer(Socket socket, Uploader uploader, WndFrame wndFrame){
         this.socket = socket;
         this.audioFile = new File(savedAudioFileName);
         this.uploader = uploader;
-        this.parent = parent;
+        this.wndFrame = wndFrame;
     }
 
     public void stopStreaming(){
@@ -57,48 +58,6 @@ public class AudioNetStreamer implements Runnable{
 
     private void uploadSavedAudioFile(){
         uploader.uploadFile("AUDIO", "audio file", savedAudioFileName);
-
-        //Builder builder = new Retrofit.Builder();
-        //***** */ JSON 용
-        // GsonBuilder gsonBuilder = new GsonBuilder();
-        // Gson gson = gsonBuilder.setLenient().create();
-        //Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create(gson)).build();
-        /* plain-text용 gradle 추가 필요함 */
-        // Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
-        
-        // INetworkService iNetworkService = retrofit.create(INetworkService.class);
-
-        // try{
-        //     File upFile = new File(savedAudioFileName);
-
-        //     RequestBody requestBodyFile = RequestBody.create(MediaType.parse("multipart/form-data"), upFile);
-        //     MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", upFile.getName(), requestBodyFile);
-
-        //     Call<String> apicall = iNetworkService.createBoard("Bearer:"+accessToken,/*/ "multipart/form-data",*/
-        //                  "AUDIO", "audio file", filePart);
-        //     apicall.enqueue(new Callback<String>(){
-        //         @Override
-        //         public void onResponse(Call<String> call, Response<String> response) {
-        //             System.out.println("uploadSuccess : " + response.body());
-        //             // 나중에 dialogue 띄우자
-        //         }
-        //         @Override
-        //         public void onFailure(Call<String> call, Throwable t) {
-        //             //JOptionPane.showMessageDialog(loginPanel, "uploadFail : " + t.getMessage());
-        //             if (t instanceof HttpException) {
-        //                 HttpException httpException = (HttpException) t;
-        //                 int responseCode = httpException.code();
-        //                 // Now you have the response code
-        //                 System.out.println("uploadFail : Response code " + responseCode);
-        //             } else {
-        //                 // Handle other types of failures (e.g., network issues)
-        //                 System.out.println("uploadFail : " + t.getMessage());
-        //             }
-        //         }
-        //     });
-        // } catch(Exception e){
-        //     System.err.println("savedAudioFile 의 upload 에 실패 했습니다");
-        // }
   
     }
 
@@ -106,13 +65,15 @@ public class AudioNetStreamer implements Runnable{
     public void run() {
         System.out.println("audio streaming thread started...");
 
+        bStreaming = true;
+
         try{
             final AudioFormat audioFormat = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
             final DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat); // for microphone
 
             if(!AudioSystem.isLineSupported(info) ){    // 앞이 microphone, 뒤가 speaker
                 System.err.println("Audio line not supported");
-                JOptionPane.showMessageDialog(parent, "음성 입력 장치가 지원되지 않습니다, 마이크를 확인하세요");
+                JOptionPane.showMessageDialog(wndFrame, "음성 입력 장치가 지원되지 않습니다, 마이크를 확인하세요");
                 // StartStreamin 버튼 활성화 필요
                 return ;
             } else {
@@ -139,7 +100,7 @@ public class AudioNetStreamer implements Runnable{
                     byteStreamSaving.write(buffer, 0, bytesRead);
 
                     // Send audio data to the Socket.IO server
-                    socket.emit("audio_data", byteStream.toByteArray());
+                    socket.emit("audio_data", wndFrame.txtCustomerTel.getText() , byteStream.toByteArray());
                 }
             }
             byte[] audioData = byteStreamSaving.toByteArray();
