@@ -89,7 +89,7 @@ public class CounselList  extends JList<Object> implements MouseListener{
     // 스프링 백엔드에서 데이터를 읽어옴
     public void readFromBoard(String tel){
         Builder builder = new Retrofit.Builder();
-        Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
+        Retrofit retrofit = builder.baseUrl(Cons.API_SERVER).addConverterFactory(GsonConverterFactory.create()).build();
         INetworkService iNetworkService = retrofit.create(INetworkService.class);
         Call<List<ResponseBoardList>> apicall = iNetworkService.listBoard("Bearer:"+wndFrame.getAccessToken(), tel, 30);
         apicall.enqueue(new Callback<List<ResponseBoardList>>(){

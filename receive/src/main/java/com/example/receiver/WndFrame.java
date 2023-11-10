@@ -180,7 +180,7 @@ public class WndFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 btnLogin.setEnabled(false); // 바로 disable 시켜야 기다리는 시간에  못 누름
                 Builder builder = new Retrofit.Builder();
-                Retrofit retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(GsonConverterFactory.create()).build();
+                Retrofit retrofit = builder.baseUrl(Cons.API_SERVER).addConverterFactory(GsonConverterFactory.create()).build();
                 INetworkService iNetworkService = retrofit.create(INetworkService.class);
                 Map<String, String> loginParamMap = new HashMap<>();
                 loginParamMap.put("tel", txtName.getText());

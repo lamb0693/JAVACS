@@ -39,7 +39,7 @@ public class Downloader {
         Gson gson = new GsonBuilder().setLenient().create();
 
         builder = new Retrofit.Builder();
-        retrofit = builder.baseUrl("http://localhost:8080/")
+        retrofit = builder.baseUrl(Cons.API_SERVER)
             .addConverterFactory(ScalarsConverterFactory.create()) // raw responses
             .addConverterFactory(GsonConverterFactory.create(gson)) // JSON conversion
             .build();

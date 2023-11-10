@@ -25,7 +25,7 @@ public class Uploader {
 
     Uploader(WndFrame wndFrame){
         builder = new Retrofit.Builder();
-        retrofit = builder.baseUrl("http://localhost:8080/").addConverterFactory(ScalarsConverterFactory.create()).build();
+        retrofit = builder.baseUrl(Cons.API_SERVER).addConverterFactory(ScalarsConverterFactory.create()).build();
         iNetworkService = retrofit.create(INetworkService.class);
         this.wndFrame = wndFrame;
         //***** */ JSON 용
