@@ -2,8 +2,8 @@ package com.example.receiver;
 
 public class Cons {
 
-    final static String SOCEKTIO_SERVER = "http://10.100.203.43:3002/counsel";
-    final static String API_SERVER = "http://10.100.203.43:8080";
+    final static String SOCEKTIO_SERVER = "http://15.164.61.120:8010/counsel";
+    final static String API_SERVER = "http://15.164.61.120:8008";
     final static int WINDOW_WIDTH = 1600;
     final static int WINDOW_HEIGHT = 1000;
     final static int UPPER_PANEL_HEIGHT = 100;
